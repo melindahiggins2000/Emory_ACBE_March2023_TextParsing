@@ -6,20 +6,28 @@ output:
   html_document:
     toc: true
     toc_float: true
-    code_folding: hide
+    code_folding: show
     highlight: arrow
     theme:
       bg: "#f2ede1"
       fg: "#000000"
       primary: "#2c6b3e"
       base_font:
-        google: "Prompt"
+        google: "Inter"
       code_font:
         google: "JetBrains Mono"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,
+                      error = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      attr.output='style="background: #bfe0c8;"',
+                      attr.source='style="padding-right: 10px;"')
+
+# turn on thematic
+thematic::thematic_rmd()
 ```
 
 ## R Markdown
@@ -71,4 +79,15 @@ mtcars %>%
   summary() %>%
   knitr::kable()
 ```
+
+## ggplot2
+
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(x=disp, y=mpg, color=as.factor(cyl))) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
 
