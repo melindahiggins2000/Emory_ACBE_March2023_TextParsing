@@ -1,6 +1,6 @@
-{:.no_toc}
-# Melinda Higgins, PhD.
-## Emory ACBE Meeting March 2023 - R Exercise on Text Parsing
+**Emory ACBE Meeting March 2023 - R Exercise on Text Parsing**
+
+Add a short description here...
 
 -----
 
@@ -14,7 +14,6 @@
 
 -----
 
-{:toc}
 ## Preparation for Workshop
 
 1. Install R [https://cran.r-project.org/](https://cran.r-project.org/)

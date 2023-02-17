@@ -3,17 +3,17 @@ description: Director of Biostatistics and Data Core - ONR; Research Professor
 # show_downloads: true
 # google_analytics:
 theme: jekyll-theme-leap-day
-
-# remote_theme: pages-themes/leap-day@v0.2.0
-# plugins:
-# - jekyll-remote-theme
+remote_theme: pages-themes/leap-day@v0.2.0
+plugins:
+  - jekyll-remote-theme
+  - jemoji
   
 # title: Melinda Higgins, PhD
 # description: Director of Biostatistics and Data Core - ONR; Research Professor
 
 # theme: jekyll-theme-minimal
-plugins:
-  - jemoji
+# plugins:
+#   - jemoji
 # title: Melinda Higgins, PhD
 # description: Director of Biostatistics and Data Core - ONR; Research Professor
 # markdown: kramdown
