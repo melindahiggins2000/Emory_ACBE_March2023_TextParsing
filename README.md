@@ -1,4 +1,6 @@
-## Emory ACBE Meeting March 2023 - R Exercise on Text Parsing
+# Melinda Higgins, PhD.
+## Emory ACBE Meeting March 2023 
+## R Exercise on Text Parsing
 
 -----
 
