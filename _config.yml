@@ -1,17 +1,19 @@
+remote_theme: pages-themes/leap-day@v0.2.0
+plugins:
+  - jekyll-remote-theme
+title: Melinda Higgins, PhD
+description: Director of Biostatistics and Data Core - ONR; Research Professor
+
 # theme: jekyll-theme-minimal
 # plugins:
 #   - jemoji
-title: Melinda Higgins, PhD
-description: Director of Biostatistics and Data Core - ONR; Research Professor
-markdown: kramdown
+# title: Melinda Higgins, PhD
+# description: Director of Biostatistics and Data Core - ONR; Research Professor
+# markdown: kramdown
 
 # remote_theme: pages-themes/dinky@v0.2.0
 # plugins:
 # - jekyll-remote-theme # add this line to the plugins list if you already have one
-
-remote_theme: pages-themes/leap-day@v0.2.0
-plugins:
-- jekyll-remote-theme
 
 # theme: jekyll-theme-minimal
 # title: Melinda Higgins, PhD
