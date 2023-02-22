@@ -1,0 +1,93 @@
+---
+title: "Workshop Instructions - arrow, bslib"
+author: "Melinda Higgins"
+date: "2023-02-17"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    highlight: arrow
+    theme:
+      bg: "#f2ede1"
+      fg: "#000000"
+      primary: "#2c6b3e"
+      base_font:
+        google: "Inter"
+      code_font:
+        google: "JetBrains Mono"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      error = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      attr.output='style="background: #bfe0c8;"',
+                      attr.source='style="padding-right: 10px;"')
+
+# turn on thematic
+thematic::thematic_rmd()
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+# summary of cars dataset
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure}
+# plot of pressure dataset
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Results {.tabset .tabset-pills}
+
+### Plots
+
+We show a scatter plot in this section.
+
+```{r, fig.dim=c(5, 3)}
+# a simple base R plot
+par(mar = c(4, 4, .5, .1))
+plot(mpg ~ hp, data = mtcars, pch = 19)
+```
+
+### Tables
+
+We show the data in this tab.
+
+```{r}
+# one table
+head(mtcars)
+
+# another table
+library(dplyr)
+mtcars %>%
+  select(mpg, disp) %>%
+  summary() %>%
+  knitr::kable()
+```
+
+## ggplot2
+
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(x=disp, y=mpg, color=as.factor(cyl))) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+
