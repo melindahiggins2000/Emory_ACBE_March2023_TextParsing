@@ -358,9 +358,9 @@ school_courses <- school_courses %>%
 
 ### What about "Wellness" versus "Nutrition and Wellness"?
 
-`^` to match the start of the string
-`(?=.*wellness)` the string should start with something with "wellness" in it
-`(?!.*nutrition for wellness)` but should NOT have "nutrition for wellness"
+- `^` to match the start of the string
+- `(?=.*wellness)` the string should start with something with "wellness" in it
+- `(?!.*nutrition for wellness)` but should NOT have "nutrition for wellness"
 
 Some helpful examples:
 
