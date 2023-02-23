@@ -1,6 +1,6 @@
 ---
 title: "Working with Text in R"
-subtitle: "Text-to-Columns; Search Across Columns; Parse Medications"
+subtitle: "Text-to-Columns; Search Across Columns; Parse FREE OPEN Text"
 author: "Melinda Higgins"
 date: "`r Sys.Date()`"
 format:
@@ -18,22 +18,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{css, echo=FALSE}
-.panel-tabset {
-  color: #2c6b3e;
-}
-.panel-tabset .nav-item {
-  background-color: #2c6b3e;
-  color: #f2ede1;
-  dark-color: #f2ede1;
-}
-<!-- .panel-tabset .nav-item { -->
-<!--   font-size: 30px; -->
-<!--   font-style: italic; -->
-<!--   background-color: #2c6b3e; -->
-<!--   color: #f2ede1; -->
-<!-- } -->
-```
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
@@ -50,13 +35,15 @@ library(thematic)
 thematic::thematic_rmd(bg="#f2ede1", fg="#000000", 
                        accent="#2c6b3e")
 
+# some of the packages to get started
 library(dplyr)
 library(tidyr)
+library(purrr)
 ```
 
 ---
 
-# Split text into separate columns
+# 1. Split text into separate columns
 
 There is a function in EXCEL under the "DATA" tab for "test-to-columns" allowing you to designate a "delimiter" for splitting text chunks into separate columns. There is a similar function in the `tidyr` package, `separate()`. Let's see an example of how this works.
 
@@ -65,7 +52,7 @@ There is a function in EXCEL under the "DATA" tab for "test-to-columns" allowing
 Let's take a look at the builtin `mtcars` dataset. This dataset has "row names" for each car's make and model. Here is an example of the top 6 rows of the `mtcars` dataset:
 
 ```{r}
-# top 6 rows of mtcars dataset
+# view top 6 rows of mtcars dataset
 mtcars %>%
   head() %>%
   knitr::kable(caption = "Top 6 rows of mtcars dataset")
@@ -81,7 +68,6 @@ row.names(mtcars)
 Let's add these text "strings" for the names of the cars to the dataset in a new column called `makemodel`:
 
 ```{r}
-library(dplyr)
 makemodel <- row.names(mtcars)
 mtcars2 <- mtcars %>%
   mutate(makemodel = makemodel)
@@ -94,9 +80,17 @@ mtcars2 %>%
 
 Suppose we now want to break up the make and model into separate columns using the space as our column divider. We can use the `separate()` function from `tidyr` package to do this. Note: given the full list of makes and models some have 2 spaces so you'll end up with 3 columns that we'll call "make", "model" and "type" which is why `into = c("make", "model", "type")` in the code below. This defines the new columns we are adding to the dataset.
 
-```{r bonus2}
-library(tidyr)
+The options below are as follows:
 
+* `data` = name of data frame
+* `col` = column you want to separate apart (in this case, character)
+* `sep` = character expression to match for separating
+* `into` = the list of new column variables you want to create
+* `remove` = whether you want to keep or remove the rest of the variables in the data frame.
+
+_Numeric variables can also be separated, see more details in the help manual for `tidyr::separate()`._
+
+```{r bonus2}
 df <-
   tidyr::separate(
     data = mtcars2,
@@ -106,7 +100,9 @@ df <-
     remove = FALSE
   )
 
-df %>% knitr::kable()
+df %>% 
+  head() %>% 
+  knitr::kable(caption = "Top 6 Rows of mtcars")
 ```
 
 ## Example 2: Extracting "Data" from filenames
@@ -150,14 +146,16 @@ df <-
     remove = FALSE
   )
 
-df %>% knitr::kable(caption = "Three new variables added: ID, Visit, Year - extracted from idlong")
+df %>% 
+  knitr::kable(caption = "Three new variables added: ID, Visit, Year - extracted from idlong")
 ```
 
-## Updated `tidyr` functions
+## NOTE: Updated `tidyr` functions
 
 ::: callout-note
 ## **IMPORTANT NOTE**
-The function `tidyr::separate()` has been now been "superseded" by several functions for "separate" actions, see [https://tidyr.tidyverse.org/reference/index.html#character-vectors](https://tidyr.tidyverse.org/reference/index.html#character-vectors).
+![superceded](lifecycle-superseded.svg)
+The function `tidyr::separate()` has been now been "superseded" by several functions for "separate" actions, see warning at [https://tidyr.tidyverse.org/reference/separate.html](https://tidyr.tidyverse.org/reference/separate.html){target="_blank"} and the updated list of cuntions at [https://tidyr.tidyverse.org/reference/index.html#character-vectors](https://tidyr.tidyverse.org/reference/index.html#character-vectors){target="_blank"}.
 :::
 
 Here is the code above updated with the newer `tidyr::separate_wider_delim()` function as of `tidyr` v.1.3.0.
@@ -167,7 +165,467 @@ labdata %>%
   tidyr::separate_wider_delim(
     cols = idlong, 
     delim = "_", 
-    names = c("ID", "visit", "year"))
+    names = c("ID", "visit", "year")) %>%
+  knitr::kable(caption = "Labdata Filenames Separated into ID, Visit and Year")
+```
+
+---
+
+# 2. Parsing multiple columns of text into categories
+
+## Example 1: Parsing a list of courses into categories
+
+```{r}
+# read in dataset
+library(readr)
+school_courses <- read_csv("school_courses.csv")
+
+# view dataset in browser with DT package
+# adds scroll bars and "next" page tabbing
+library(DT)
+datatable(school_courses, options = list(
+  pageLength = 5, autoWidth = TRUE
+))
+```
+
+Let's create indicators for different course categories using sets of keywords under each course type. For example, let's build indicators for:
+
+* English
+    - Writing
+    - Composition
+    - Literature
+    - Critical Thinking
+    - Written Expression
+    - Creative Arts
+    - Communication
+    - Literary
+    - Rhetoric
+    - reading
+    - written communication
+* Statistics
+    - Quantitative Reasoning
+    - biostatistics
+    - statistics
+* Fitness - _this does NOT include "nutrition" nor "nutrition for wellness"_
+    - Health and Fitness
+    - Wellness
+    - Physical Education
+* Nutrition - _run as a separate category_
+    - nutrition
+    - nutrition for wellness
+    
+### Explaining the code below
+
+* `mutate()` from `dplyr` package used to create new variables in dataset
+* `if_any()` also from `dplyr` package used to select multiple columns "across" which to "apply" a given function. See ["colwise" vignette for dplyr](https://dplyr.tidyverse.org/articles/colwise.html).
+* `.cols = ` is a list of columns or variables
+* `starts_with()` is a "helpful" function from [`tidyselect` package](https://tidyselect.r-lib.org/reference/starts_with.html), loaded with `tidyr`.
+* `.fns = ` could be any function like `mean()`, but here I'm using a `purrr` style `~` to "map" a function across the columns specified; see more details for [`dplyr::across()`](https://dplyr.tidyverse.org/reference/across.html).
+* `str_detect()` is from [`stringr` package](https://stringr.tidyverse.org/reference/str_detect.html).
+* `tolower()` is a base R function that sets the character string specified to all lowercase letters. The syntax here `tolower(.)` takes the "strings" coming in from the "course" columns and feeds them `.` into `tolower()`.
+
+```{r}
+# load stringr for str_detect() function
+library(stringr)
+
+# look across all of the columns that start with "course"
+# look for the word "english" in any of these columns
+# to avoid capitalization issues, use tolower() function
+school_courses <- school_courses %>%
+  mutate(englishYN =
+           if_any(.cols = starts_with("course"),
+                  .fns = ~ str_detect(tolower(.), "english")))
+
+# add another course to list
+school_courses <- school_courses %>%
+  mutate(writingYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "writing")))
+
+school_courses %>%
+  mutate(aa = rowSums(across(c(englishYN,writingYN)),
+                      na.rm = TRUE)) %>%
+  select(school, englishYN, writingYN, aa)
+
+# create indicator variable for any school
+# with either an "english" or "writing" course or both
+school_courses <- school_courses %>%
+  mutate(engwrit01 = as.numeric(
+    rowSums(across(c(englishYN,writingYN)),
+            na.rm = TRUE) > 0)) 
+
+school_courses %>%
+  select(school, englishYN, writingYN, engwrit01)
+```
+
+Notice that:
+
+* School 1 has something listed in all 10 course listings and none have the word "english" in them, so you get a value of FALSE or 0.
+* But School 3 only has data in 12 columns, the last 6 are empty. None of these 12 columns had the word "english" and was also missing data in the last columns which is why you get a value of `NA`.
+* And the rest of the schools have at least 1 column with the word "english" in it.
+* There are similar results for the "writing" courses.
+* The final column shows a 1 if the school has either "english", "writing" or both or shows a 0 if they have neither.
+
+::: callout-warning
+## **WARNING**
+I should note that when I wrote this code I did not care if there was more than 1 course with a given subject (like English 101 and English 102), I only cared whether the course showed up at least once in the list. You may need to update my code if you care about accounting for columns with missing data.
+:::
+
+### Rest of code to parse rest of list for "English" and "Statistics"
+
+```{r}
+# create TRUE FALSE for YES/NO for each of these key words
+# and phases to look for:
+school_courses <- school_courses %>%
+  mutate(englishYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "english"))) %>%
+  mutate(writingYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "writing"))) %>%
+  mutate(compositionYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "composition"))) %>%
+  mutate(literatureYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "literature"))) %>%
+  mutate(criticalThinkingYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "critical thinking"))) %>%
+  mutate(writtenExcourseessionYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "written excourseession"))) %>%
+  mutate(creativeArtsYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "creative arts"))) %>%
+  mutate(communicationYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "communication"))) %>%
+  mutate(literaryYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "literary"))) %>%
+  mutate(rhetoricYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "rhetoric"))) %>%
+  mutate(readingYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "reading"))) %>%
+  mutate(writtenCommunicationYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "written communication"))) %>%
+  # now add up all the TRUE (as 1) and FALSE (as 0)
+  # notice I added na.rm=TRUE so the NAs are ignored
+  # and I used as.numeric(xxx > 0) to 
+  mutate(english01 = as.numeric(rowSums(across(
+    c(
+      englishYN,
+      writingYN,
+      compositionYN,
+      literatureYN,
+      criticalThinkingYN,
+      writtenExcourseessionYN,
+      creativeArtsYN,
+      communicationYN,
+      literaryYN,
+      rhetoricYN,
+      readingYN,
+      writtenCommunicationYN
+    )
+  ),
+  na.rm = TRUE) > 0)) %>%
+  mutate(statisticsYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "statistics"))) %>%
+  mutate(biostatisticsYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "biostatistics"))) %>%
+  mutate(quantitativeYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "quantitative"))) %>%
+  mutate(quantitativeReasoningYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "quantitative reasoning"))) %>%
+  mutate(stat01 = as.numeric(rowSums(across(
+    c(
+      statisticsYN,
+      biostatisticsYN,
+      quantitativeYN,
+      quantitativeReasoningYN
+    )
+  ),
+  na.rm = TRUE) > 0)) 
+```
+
+### What about "Wellness" versus "Nutrition and Wellness"?
+
+`^` to match the start of the string
+`(?=.*wellness)` the string should start with something with "wellness" in it
+`(?!.*nutrition for wellness)` but should NOT have "nutrition for wellness"
+
+Some helpful examples:
+
+* [https://epirhandbook.com/en/characters-and-strings.html#regex-and-special-characters](https://epirhandbook.com/en/characters-and-strings.html#regex-and-special-characters)
+* [https://stackoverflow.com/questions/68868679/pattern-matching-in-r-if-string-not-followed-but-another-string](https://stackoverflow.com/questions/68868679/pattern-matching-in-r-if-string-not-followed-but-another-string)
+
+Also notice I'm including whole phrases and not just 1 word.
+
+```{r}
+school_courses <- school_courses %>%
+  mutate(fitnessYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "fitness"))) %>%
+  mutate(wellnessYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "^(?=.*wellness)(?!.*nutrition for wellness)"))) %>%
+  mutate(physedYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "physical education"))) %>%
+  mutate(healthWellnessYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "health and wellness"))) %>%
+  mutate(fitness01 = as.numeric(rowSums(across(
+    c(
+      fitnessYN,
+      wellnessYN,
+      physedYN,
+      healthWellnessYN
+    )
+  ),
+  na.rm = TRUE) > 0)) %>%
+  mutate(nutritionYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "nutrition"))) %>%
+  mutate(nutritionWellnessYN =
+           if_any(.cols = starts_with("course"),
+                  ~ str_detect(tolower(.), "nutrition for wellness"))) %>%
+  mutate(nutrition01 = as.numeric(rowSums(across(
+    c(
+      nutritionYN,
+      nutritionWellnessYN
+    )
+  ),
+  na.rm = TRUE) > 0))
+  
+coursenames01 <- school_courses %>%
+  select(contains("01") & !contains("course")) %>%
+  names() 
+coursenames <- str_remove(coursenames01, "01")
+
+c1 <- school_courses[, c("school", coursenames01)]
+names(c1) <- c("school", coursenames)
+c1
+```
+
+## Table of Frequencies of Course Categories
+
+```{r results = "asis"}
+library(arsenal)
+
+# add labels for variables in c1
+attr(c1$school, 'label')  <- 'School ID'
+attr(c1$engwrit, 'label')  <- 'English or Writing'
+attr(c1$english, 'label')  <- 'English'
+attr(c1$stat, 'label')  <- 'Statistics'
+attr(c1$fitness, 'label')  <-
+  'Health, Fitness, Wellness & Physical Education'
+attr(c1$nutrition, 'label')  <-
+  'Nutrition (including Nutrition and Wellness)'
+
+# create a function to make 0/1 into "no"/"yes" factor
+# set 0=no, 1=yes and make as factor
+factoryn <-
+  function(.x) {
+    return(factor(.x,
+                  level = c(0, 1),
+                  label = c("no", "yes")))
+  }
+
+# use purrr package to map this function
+# across all of the 0/1 variables
+# to turn them into "no"/"yes" factor type
+c1yn <- c1 %>%
+  select(all_of(coursenames)) %>%
+  purrr::map(factoryn) %>%
+  data.frame()
+
+tab1 <-
+  tableby( ~ .,
+           numeric.stats = c("median", "q1q3", "range", "Nmiss"),
+           data = c1yn)
+summary(
+  tab1,
+  test = FALSE,
+  pfootnote = TRUE,
+  digits = 1,
+  digits.pct = 1,
+  title = "Course Frequencies for 10 Schools"
+)
+```
+
+
+## Example 2: Parsing a list of medications into treatment classes
+
+```{r}
+# medications example to go here
+# import dataset
+library(readxl)
+medications <- read_excel("medications.xlsx")
+
+# create list of variables for medications ======================
+medlist1 <- c("medication1", "medication2",
+              "medication3", "medication4",
+              "medication5", "medication6",
+              "medication7", "medication8",
+              "medication9", "medication10")
+
+# look for all of these medications for HTN treatments:
+# amlodipine
+# atenolol
+# benazepril
+# benicur
+# benzaepril
+# bisoprolol
+# carveldilol
+# chlorthalidone
+# clonidine
+# dyazide
+# exforge
+# furosemide
+# furosimide
+# hctz
+# labetalol
+# lisinopril
+# losartan
+# maxzide
+# metoprolol
+# nadolol
+# nebivolol
+# nifedipine
+# olmesartan
+# water pill
+# prazosin
+# primivil
+# telmisartan
+# timerol
+# triamterene
+# triamterine
+# triamterinel
+# valsartan
+
+medications <- medications %>%
+  mutate(htn01 = as.numeric(
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "amlodipine"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "atenolol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "benazepril"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "benicur"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "benzaepril"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "bisoprolol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "carveldilol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "chlorthalidone"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "clonidine"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "dyazide"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "exforge"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "furosemide"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "furosimide"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "hctz"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "hydrochlor"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "labetalol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "lisinopril"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "losartan"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "maxzide"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "metoprolol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "nadolol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "nebivolol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "nifedipine"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "olmesartan"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "water pill"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "prazosin"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "primivil"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "telmisartan"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "timerol"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "triamterene"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "triamterine"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "triamterinel"))) |
+    (if_any(.cols = medlist1,~ str_detect(tolower(.), "valsartan")))
+    )) 
+
+# look for all of these medications for Diabetes treatments:
+# glipizide
+# glyburide
+# humalog
+# insulin
+# lantis
+# linaglipten
+# lumulin
+# metformin
+# novolog
+# piogli
+# proglit
+# saxaglipitin
+
+medications <- medications %>%
+  mutate(diab01 = as.numeric(
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "glipizide"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "glyburide"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "humalog"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "insulin"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "lantis"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "linaglipten"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "lumulin"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "metformin"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "novolog"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "piogli"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "proglit"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "saxaglipitin")))
+    )) 
+
+# look for all of these medications for Cholesterol treatments:
+# cholest
+# fenofibrate
+# simvastatin
+# vytorin
+# zetia
+
+medications <- medications %>%
+  mutate(cholesterol01 = as.numeric(
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "cholest"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "fenofibrate"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "simvastatin"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "vytorin"))) |
+    (if_any(.cols = medlist1, ~ str_detect(tolower(.), "zetia")))
+    )) 
+```
+
+### Look at results - who is on these 3 medications:
+
+```{r}
+medications %>%
+  select(id, htn01, diab01, cholesterol01) %>%
+  DT::datatable(., options = list(pageLength = 20))
+```
+
+### Pull a list of subject IDs on certain medications or combinations of meds
+
+```{r}
+# list of subjects on HTN medications
+medications %>%
+  filter(htn01 == 1) %>%
+  pull(id)
+
+# list of subjects on Diabetes medications
+medications %>%
+  filter(diab01 == 1) %>%
+  pull(id)
+
+# list of subjects on HTN and Diabetes medications
+medications %>%
+  filter(htn01 == 1 & diab01 == 1) %>%
+  pull(id)
+
+# list of subjects on Cholesterol medications
+medications %>%
+  filter(cholesterol01 == 1) %>%
+  pull(id)
 ```
 
 ---
@@ -184,37 +642,4 @@ labdata %>%
 * BOOK: [Text Mining with R](https://www.tidytextmining.com/)
 
 
----
-
-# Results - TAB Example {.tabset .tabset-pills}
-
-::: {.panel-tabset}
-
-## Plots
-
-We show a scatter plot in this section.
-
-```{r, fig.dim=c(5, 3)}
-# a simple base R plot
-par(mar = c(4, 4, .5, .1))
-plot(mpg ~ hp, data = mtcars, pch = 19)
-```
-
-## Tables
-
-We show the data in this tab.
-
-```{r}
-# one table
-head(mtcars)
-
-# another table
-library(dplyr)
-mtcars %>%
-  select(mpg, disp) %>%
-  summary() %>%
-  knitr::kable()
-```
-
-:::
 
