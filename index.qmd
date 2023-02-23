@@ -416,7 +416,7 @@ names(c1) <- c("school", coursenames)
 c1
 ```
 
-## Table of Frequencies of Course Categories
+### Table of Frequencies of Course Categories
 
 ```{r results = "asis"}
 library(arsenal)
