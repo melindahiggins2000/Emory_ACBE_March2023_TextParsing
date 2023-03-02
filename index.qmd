@@ -41,6 +41,12 @@ library(purrr)
 
 ---
 
+# Files for Exercises:
+
+* This RMD R markdown file: [index.Rmd](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/index.Rmd)
+* The [school_courses.csv](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/school_courses.csv) dataset
+* The [medications.xlsx](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/medications.xlsx) dataset
+
 # 1. Split text into separate columns
 
 There is a function in EXCEL under the "DATA" tab for "test-to-columns" allowing you to designate a "delimiter" for splitting text chunks into separate columns. There is a similar function in the `tidyr` package, `separate()`. Let's see an example of how this works.
