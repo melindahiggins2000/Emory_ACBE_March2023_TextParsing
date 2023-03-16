@@ -1,5 +1,5 @@
 ---
-title: "Working with Text in R"
+title: "Working with Text in R - 2 skills 4 exercises"
 subtitle: "Text-to-Columns; Search Across Columns; Parse FREE OPEN Text"
 author: "Melinda Higgins"
 date: "`r Sys.Date()`"
@@ -39,19 +39,42 @@ library(tidyr)
 library(purrr)
 ```
 
+# Overview
+
+The code and data presented below will hopefully help you get some experience working with TEXT data in R. The materials below focus on 2 skills with 2 examples for each:
+
+* Skill 1: Separating text into columns
+    - Example 1: Get the make and model of cars (mtcars built-in dataset)
+    - Example 2: Extracting "data" from filenames (e.g. id, visit, etc)
+    
+* Skill 2: Working with FREE/OPEN test - Searching for text - parsing into categories
+    - Example 3: Working with messy list of college courses
+    - Example 4: Working with messy list of medications
+    
 ---
 
-# Files for Exercises:
+# Files for 4 Exercises:
 
 * This RMD R markdown file: [index.Rmd](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/index.Rmd)
 * The [school_courses.csv](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/school_courses.csv) dataset
 * The [medications.xlsx](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/medications.xlsx) dataset
 
-# 1. Split text into separate columns
+# R Packages needed:
+
+* [`dplyr`](https://dplyr.tidyverse.org/) - for using the `%>%` pipe command and other data wrangling (like `mutate()`, `filter()`, `pull()`, `select()` functions)
+* [`tidyr`](https://tidyr.tidyverse.org/) - for separating text into columns
+* [`purrr`](https://purrr.tidyverse.org/) - for applying functions over a range of columns
+* [`readr`](https://readr.tidyverse.org/) - to read in the CSV file
+* [`readxl`](https://readxl.tidyverse.org/) - read in an EXCEL file
+* [`DT`](https://rstudio.github.io/DT/) - useful way of displaying tables of data (in the HTML document)
+* [`stringr`](https://stringr.tidyverse.org/index.html) - for working with messy text
+* [`arsenal`](https://mayoverse.github.io/arsenal/index.html) - (optional) for table formatting and organizing output
+
+# Skill 1: Splitting text into separate columns
 
 There is a function in EXCEL under the "DATA" tab for "test-to-columns" allowing you to designate a "delimiter" for splitting text chunks into separate columns. There is a similar function in the `tidyr` package, `separate()`. Let's see an example of how this works.
 
-## Example 1: Make and Model of Cars in `mtcars` dataset
+# Example 1: Make and Model of Cars in `mtcars` dataset
 
 Let's take a look at the built-in `mtcars` dataset. This dataset has "row names" for each car's make and model. Here is an example of the top 6 rows of the `mtcars` dataset:
 
@@ -109,7 +132,7 @@ df %>%
   knitr::kable(caption = "Top 6 Rows of mtcars")
 ```
 
-## Example 2: Extracting "Data" from filenames
+# Example 2: Extracting "Data" from filenames
 
 Here is a small hypothetical dataset from a lab that created custom IDs to track the subject, visit number and year by combining them into one long "string" (text field) separated by underscores "_". This is the variable `idlong` in the `labdata` dataset (created in code below).
 
@@ -175,9 +198,9 @@ labdata %>%
 
 ---
 
-# 2. Parsing multiple columns of text into categories
+# Skill 2: Searching for text & Parsing into categories
 
-## Example 1: Parsing a list of courses into categories
+# Example 3: Parsing a list of courses into categories
 
 Download [school_courses.csv](https://melindahiggins2000.github.io/Emory_ACBE_March2023_TextParsing/school_courses.csv) dataset for this exercise.
 
@@ -220,7 +243,7 @@ Let's create indicators for different course categories using sets of keywords u
     - nutrition
     - nutrition for wellness
     
-### Explaining the code below
+## Explaining the code below
 
 * `mutate()` from `dplyr` package used to create new variables in dataset
 * `if_any()` also from `dplyr` package used to select multiple columns "across" which to "apply" a given function. See ["colwise" vignette for dplyr](https://dplyr.tidyverse.org/articles/colwise.html).
@@ -277,7 +300,7 @@ Notice that:
 I should note that when I wrote this code I did not care if there was more than 1 course with a given subject (like English 101 and English 102), I only cared whether the course showed up at least once in the list. You may need to update my code if you care about accounting for columns with missing data.
 :::
 
-### Rest of code to parse rest of list for "English" and "Statistics"
+## Rest of code to parse rest of list for "English" and "Statistics"
 
 ```{r}
 # create TRUE FALSE for YES/NO for each of these key words
@@ -362,7 +385,7 @@ school_courses <- school_courses %>%
   na.rm = TRUE) > 0)) 
 ```
 
-### What about "Wellness" versus "Nutrition and Wellness"?
+## What about "Wellness" versus "Nutrition and Wellness"?
 
 - `^` to match the start of the string
 - `(?=.*wellness)` the string should start with something with "wellness" in it
@@ -422,7 +445,7 @@ names(c1) <- c("school", coursenames)
 c1
 ```
 
-### Table of Frequencies of Course Categories
+## Table of Frequencies of Course Categories
 
 ```{r results = "asis"}
 library(arsenal)
@@ -468,7 +491,7 @@ summary(
 )
 ```
 
-## Example 2: Parsing a list of medications into treatment classes
+# Example 4: Parsing a list of medications into treatment classes
 
 Download [medications.xlsx](https://melindahiggins2000.github.io/Emory_ACBE_March2023_TextParsing/medications.xlsx) dataset for this exercise.
 
@@ -603,7 +626,7 @@ medications <- medications %>%
     )) 
 ```
 
-### Look at results - who is on these 3 medications:
+## Look at results - who is on these 3 medications:
 
 ```{r}
 medications %>%
@@ -611,7 +634,7 @@ medications %>%
   DT::datatable(., options = list(pageLength = 20))
 ```
 
-### Pull a list of subject IDs on certain medications or combinations of meds
+## Pull a list of subject IDs on certain medications or combinations of meds
 
 ```{r}
 # list of subjects on HTN medications
