@@ -55,7 +55,7 @@ The code and data presented below will hopefully help you get some experience wo
 
 # Files for 4 Exercises:
 
-* This RMD R markdown file: [index.Rmd](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/index.Rmd)
+* This RMD R markdown file: [index.Rmd](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/index.qmd)
 * The [school_courses.csv](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/school_courses.csv) dataset
 * The [medications.xlsx](https://github.com/melindahiggins2000/Emory_ACBE_March2023_TextParsing/raw/main/medications.xlsx) dataset
 
